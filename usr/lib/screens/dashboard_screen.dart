@@ -13,26 +13,27 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _currentIndex = 0;
 
-  late List<Widget> _pages;
-
   @override
-  void initState() {
-    super.initState();
-    _pages = [
-      HomeTab(user: widget.userProfile),
+  Widget build(BuildContext context) {
+    final pages = [
+      HomeTab(
+        user: widget.userProfile,
+        onTabChange: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
       WorkoutTab(goal: widget.userProfile.goal),
       NutritionTab(goal: widget.userProfile.goal),
     ];
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(_getTitle(_currentIndex)),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -65,8 +66,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 class HomeTab extends StatelessWidget {
   final UserProfile user;
+  final Function(int) onTabChange;
 
-  const HomeTab({super.key, required this.user});
+  const HomeTab({
+    super.key,
+    required this.user,
+    required this.onTabChange,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +100,60 @@ class HomeTab extends StatelessWidget {
                   Text('Goal: ${user.goal.displayName}'),
                   const SizedBox(height: 4),
                   Text('Current Stats: ${user.weightKg}kg • ${user.heightCm}cm • ${user.age} yrs'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Health Check / BMI Card
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.health_and_safety, color: Colors.blue.shade700, size: 28),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Health Check (BMI)',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              user.bmi.toStringAsFixed(1),
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: _getBmiColor(user.bmiCategory),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                user.bmiCategory,
+                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -137,7 +197,7 @@ class HomeTab extends StatelessWidget {
                   icon: Icons.play_circle_fill,
                   label: 'Start Workout',
                   color: Colors.orange.shade100,
-                  onTap: () {},
+                  onTap: () => onTabChange(1), // Switch to Workout Tab
                 ),
               ),
               const SizedBox(width: 16),
@@ -146,7 +206,7 @@ class HomeTab extends StatelessWidget {
                   icon: Icons.local_dining,
                   label: 'Log Meal',
                   color: Colors.green.shade100,
-                  onTap: () {},
+                  onTap: () => onTabChange(2), // Switch to Nutrition Tab
                 ),
               ),
             ],
@@ -154,6 +214,21 @@ class HomeTab extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _getBmiColor(String category) {
+    switch (category) {
+      case 'Underweight':
+        return Colors.blue;
+      case 'Normal Weight':
+        return Colors.green;
+      case 'Overweight':
+        return Colors.orange;
+      case 'Obese':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 }
 

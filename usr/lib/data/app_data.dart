@@ -43,6 +43,16 @@ class UserProfile {
     required this.weightKg,
     required this.goal,
   });
+
+  double get bmi => weightKg / ((heightCm / 100) * (heightCm / 100));
+
+  String get bmiCategory {
+    final value = bmi;
+    if (value < 18.5) return 'Underweight';
+    if (value < 25) return 'Normal Weight';
+    if (value < 30) return 'Overweight';
+    return 'Obese';
+  }
 }
 
 class Exercise {
